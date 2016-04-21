@@ -108,6 +108,12 @@ def makeImage(dimensions, path, city_list):
 			for a_line in all_lines:
 				draw.line(a_line[0], a_line[1])
 				draw(image)
+			for city in city_list:
+				draw.circle(city,(city[0]+10,city[1]+10))
+				draw.stroke_color = Color('black')
+				draw.stroke_width = 2
+				draw.fill_color = Color('white')
+				draw(image)
 
 			image.save(filename = 'testimage.png')
 
@@ -127,7 +133,18 @@ def makeCluster(dimensions, path_list, city_list):
 			for a_line in all_lines:
 				draw.line(a_line[0], a_line[1])
 				draw(image)
-			image.save(filename = 'testimage.png')
+
+			draw.stroke_color = Color('black')
+			draw.stroke_width = 2
+			draw.fill_color = Color('white')
+			for city in city_list:
+				draw.circle(city,(city[0]+10,city[1]+10))
+				draw.stroke_color = Color('black')
+				draw.stroke_width = 2
+				draw.fill_color = Color('white')
+				draw(image)
+
+			image.save(filename = 'cluster.png')
 
 def computeBest(cities):
 	all_possible_paths = itertools.permutations(range(len(cities)))
@@ -139,7 +156,7 @@ def computeBest(cities):
 			best_one = path
 	return best_one
 
-def main(num_cities, num_paths,num_generation,dimensions):
+def main(num_cities, num_paths, num_generation, dimensions=[500,500], elite_num = 1):
 	cities = generateCities(num_cities,dimensions)
 	paths = generatePaths(num_paths, num_cities)
 	for generation in range(num_generation):
@@ -157,8 +174,12 @@ def main(num_cities, num_paths,num_generation,dimensions):
 		# print paths
 		
 
-		while len(new_generation) < num_paths:
+		while len(new_generation) < num_paths-elite_num:
 			new_generation.append(mate(paths,fitnesses))
+		fit_copy = list(fitnesses)
+		fit_copy.sort()
+		for i in fit_copy[:elite_num]:
+			new_generation.append(paths[fitnesses.index(i)])
 		new_generation = mutate(new_generation, 1, 1)
 		paths = new_generation
 
@@ -168,7 +189,7 @@ def main(num_cities, num_paths,num_generation,dimensions):
 	# makeImage(dimensions, lowest, cities)
 
 
-main(7,10,1,[500,500])
+main(7,7,1)
 
 
 
