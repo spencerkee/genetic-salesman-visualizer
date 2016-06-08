@@ -100,61 +100,6 @@ def numUnique(paths):
 			unique_num += 1
 	return unique_num
 
-def makeImage(dimensions, path, city_list):
-	with Drawing() as draw:
-		with Image(width=dimensions[1], height=dimensions[0], background=None) as image:
-
-			current_city = 0
-			next_city = 1
-			all_lines = []
-			while next_city < len(path):
-				line_dimensions = ((city_list[path[current_city]],city_list[path[next_city]]))
-				all_lines.append(line_dimensions)
-				current_city += 1
-				next_city += 1
-			all_lines.append((city_list[path[0]],city_list[path[-1]]))
-
-			for a_line in all_lines:
-				draw.line(a_line[0], a_line[1])
-				draw(image)
-			for city in city_list:
-				draw.circle(city,(city[0]+10,city[1]+10))
-				draw.stroke_color = Color('black')
-				draw.stroke_width = 2
-				draw.fill_color = Color('white')
-				draw(image)
-
-			image.save(filename = 'testimage.png')
-
-def makeCluster(dimensions, path_list, city_list):
-	with Drawing() as draw:
-		with Image(width=dimensions[1], height=dimensions[0], background=None) as image:
-			all_lines = []
-			for path in path_list:
-				current_city = 0
-				next_city = 1
-				while next_city < len(path):
-					line_dimensions = ((city_list[path[current_city]],city_list[path[next_city]]))
-					all_lines.append(line_dimensions)
-					current_city += 1
-					next_city += 1
-				all_lines.append((city_list[path[0]],city_list[path[-1]]))
-			for a_line in all_lines:
-				draw.line(a_line[0], a_line[1])
-				draw(image)
-
-			draw.stroke_color = Color('black')
-			draw.stroke_width = 2
-			draw.fill_color = Color('white')
-			for city in city_list:
-				draw.circle(city,(city[0]+10,city[1]+10))
-				draw.stroke_color = Color('black')
-				draw.stroke_width = 2
-				draw.fill_color = Color('white')
-				draw(image)
-
-			image.save(filename = 'cluster.png')
-
 def computeBest(cities):
 	all_possible_paths = itertools.permutations(range(len(cities)))
 	previous_best = float("inf")
@@ -173,7 +118,6 @@ def diversify(path_list, threshold):
 	return_list = []
 	while second <= len(path_list):
 		if second == len(path_list):
-			# print 'block',path_list[first:second]
 			if len(path_list[first:second]) > threshold:
 				for i in range(first,second-1):
 					return_list.append(mutate(path_list[i],100,1))
@@ -181,7 +125,6 @@ def diversify(path_list, threshold):
 			else:
 				return_list = return_list + path_list[first:second]
 		elif path_list[first] != path_list[second]:
-			# print 'block', path_list[first:second]
 			if len(path_list[first:second]) > threshold:
 				for i in range(first,second-1):
 					return_list.append(mutate(path_list[i],100,1))
@@ -207,52 +150,24 @@ def main(num_cities, num_paths, num_generation, dimensions=[500,500], elite_num=
 			best_path = paths[fitnesses.index(min(fitnesses))]
 			lowest_score = min(fitnesses)
 
-		# print sum(fitnesses)/num_paths, numUnique(paths)
+		print ('Avg Fitness:', sum(fitnesses)/num_paths, 'Unique paths:', numUnique(paths))
 
 		while len(new_generation) < num_paths-elite_num:
 			new_generation.append(mate(paths,fitnesses))
-		
+
 		fit_copy = list(fitnesses)
 		fit_copy.sort()
 		for i in fit_copy[:elite_num]:
 			new_generation.append(paths[fitnesses.index(i)])
-		
+
 		new_generation = mutate(new_generation, 2, 1)
 		paths = new_generation
 		paths = diversify(paths,diversify_threshold)
 
-	# makeCluster(dimensions,paths,cities)
-	BEST = computeBest(cities)
-	if fitness(BEST,cities) != lowest_score:
-		return 0
-	else:
-		return 1
-	# print 'best', BEST, fitness(BEST,cities)
-	# print 'mybest', best_path, lowest_score
-	# makeImage(dimensions, lowest, cities)
+	print ('Genetically Best:', lowest_score, best_path)
+	proven_best = computeBest(cities)
+	print ('Mathematically Best:', fitness(proven_best, cities), proven_best)
 
 
-
-
-def tester(num_trials, generations):
-	result_list = []
-	for trial in range(num_trials):
-		print 'trialnum', trial
-		result_list.append(main(num_cities=8,num_paths=50,num_generation=generations))
-	return sum(result_list)
-
-
-# 100 trials 30 generations 41%
-# 100 trials 40 generations 49%
-# 100 trials 50 generations 54%
-print tester(100,50)
-
-
-
-# main(num_cities=8,num_paths=50,num_generation=30)
-# cities = generateCities(10,[100,100])#took 54 seconds
-# computeBest(cities)
-
-
-
-
+if __name__ == '__main__':
+	main(9, 50, 100)
